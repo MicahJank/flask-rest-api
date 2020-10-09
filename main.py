@@ -22,24 +22,37 @@ videos = {}
 # this function will handle what happense whenver some data the request is trying to access doenst exist
 # abort comes from the flask_restful library, it sends back an error message that we can define in the parameter
 # the status code signals what type of error we should send back
-def handle_request_error(video_id):
+def abort_if_id_missing(video_id):
     if video_id not in videos:
         abort(404, message=f"Couldn't find video with id {video_id}")
+
+def abort_if_id_not_missing(video_id):
+    if video_id in videos:
+        abort(409, message=f"Video with id {video_id} already exists")
+
+
+
 
 # Video is inheriting from Resource
 # this creates the structure of the resource
 class Video(Resource):
     # we override the get function to return our own resource
     def get(self, video_id):
-        handle_request_error(video_id)
+        abort_if_id_missing(video_id)
         return videos[video_id]
     
     def put(self, video_id):
+        abort_if_id_not_missing(video_id)
         # this will parse the request for the args and if they arent in there it will automatically send back an error
         args = video_put_args.parse_args()
         videos[video_id] = args
         # status codes can be returned with the request, in this case 201 is returned since it stands for created
         return videos[video_id], 201
+
+    def delete(self, video_id):
+        abort_if_id_missing(video_id)
+        del videos[video_id]
+        return {"message": 'delete successful', "status": 204}
 
 
 # this actually adds the resource to the api
