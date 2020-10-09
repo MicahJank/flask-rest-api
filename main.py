@@ -1,10 +1,15 @@
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse, abort
+from flask_sqlalchemy import SQLAlchemy
 
 # creates the flask app
 app = Flask(__name__)
+
 # initializes the flask app as an API
 api = Api(app)
+
+# initialize the database (note that sqlalchemy uses sqlite for storage)
+db = SQLAlchemy(app)
 
 # the request parser object will parse the request and make sure it fits the guidelines
 # basically it will validate what is being sent through the request to make sure its right
