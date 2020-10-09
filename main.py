@@ -1,5 +1,5 @@
 from flask import Flask, request
-from flask_restful import Api, Resource, reqparse
+from flask_restful import Api, Resource, reqparse, abort
 
 # creates the flask app
 app = Flask(__name__)
@@ -19,11 +19,19 @@ video_put_args.add_argument("views", type=int, help="Views of the video is requi
 video_put_args.add_argument("likes", type=int, help="likes on the video is required", required=True)
 videos = {}
 
+# this function will handle what happense whenver some data the request is trying to access doenst exist
+# abort comes from the flask_restful library, it sends back an error message that we can define in the parameter
+# the status code signals what type of error we should send back
+def handle_request_error(video_id):
+    if video_id not in videos:
+        abort(404, message=f"Couldn't find video with id {video_id}")
+
 # Video is inheriting from Resource
 # this creates the structure of the resource
 class Video(Resource):
     # we override the get function to return our own resource
     def get(self, video_id):
+        handle_request_error(video_id)
         return videos[video_id]
     
     def put(self, video_id):
