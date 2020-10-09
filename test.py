@@ -13,8 +13,5 @@ for i,video in enumerate(data):
     print(response.json())  
 
 input()
-response = requests.delete(f"{BASE}/video/0")
-print(response.json())
-input()
 response = requests.get(f"{BASE}/video/2")
 print(response.json())
