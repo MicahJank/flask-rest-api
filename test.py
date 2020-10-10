@@ -8,10 +8,14 @@ data = [{"likes": 78, "name": "GraphQL for Beginners", "views": 100000},
         {"likes": 90, "name": "Self help 101", "views": 1234},
         {"likes": 130, "name": "Double rainbow", "views": 1294834327},]
 
+# sends out 5 request to make a video
 for i,video in enumerate(data):
-    response = requests.put(f"{BASE}/video/{i}", video)
+    response = requests.post(f"{BASE}/video", video)
     print(response.json())  
 
 input()
-response = requests.get(f"{BASE}/video/2")
+response = requests.get(f"{BASE}/video/40234")
+print(response.json())
+input()
+response = requests.delete(f"{BASE}/video/1")
 print(response.json())

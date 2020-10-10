@@ -65,13 +65,26 @@ class Video(Resource):
         # this is similar to building out models in express using knex and then querying them only difference
         # is that the methods come prebuilt - first will get the first response
         result = VideoModel.query.filter_by(id=video_id).first()
+        if not result:
+            abort(404, message=f"Video with id {video_id} does not exist")
         return result
-    
+
+    # both delete and get have need of the video id
+    def delete(self, video_id):
+        result = VideoModel.query.filter_by(id=video_id).delete()
+        if not result:
+            abort(404, message=f"Video with id {video_id} does not exist")
+        db.session.commit()
+        return {"message": 'delete successful', "status": 204}
+
+# the api resource to use when creating a video - this needs to be separate from the above resource because i want the endpoint to not be associated with ids
+# to create a video it should be as simple as sending a video object o the /video endpoint
+class CreateVideo(Resource): 
     @marshal_with(resource_fields)
-    def put(self, video_id):
+    def post(self):
         # this will parse the request for the args and if they arent in there it will automatically send back an error
         args = video_put_args.parse_args()
-        video = VideoModel(id=video_id, name=args['name'], views=args['views'], likes=args['likes'])
+        video = VideoModel(name=args['name'], views=args['views'], likes=args['likes'])
         # adds the object to the database session - this adds the video to the database TEMPORARILY
         db.session.add(video)
         # commits any changes to the session to the database - adds anything in the current session to the database PERMANENTLY
@@ -79,13 +92,10 @@ class Video(Resource):
         # status codes can be returned with the request, in this case 201 is returned since it stands for created
         return video, 201
 
-    def delete(self, video_id):
-        VideoModel.query.delete(id=video_id)
-        return {"message": 'delete successful', "status": 204}
-
 
 # this actually adds the resource to the api
 api.add_resource(Video, "/video/<int:video_id>")
+api.add_resource(CreateVideo, "/video")
 
 # the app should run if the name of the file running is 'main'
 # i also set debug to true to give us information logging in the console
