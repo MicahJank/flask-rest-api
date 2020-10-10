@@ -33,17 +33,23 @@ if path.exists('database.db') == False:
 
 # the request parser object will parse the request and make sure it fits the guidelines
 # basically it will validate what is being sent through the request to make sure its right
-video_put_args = reqparse.RequestParser()
+video_create_args = reqparse.RequestParser()
 
 # name is basically the key of the argument, type is the type of value the key will have and
 # help is what you give so that when the user doesnt send the right information it will give them a help message
 # to know what they are missing 
 # when required is set to true it will throw an error if the request does not have the right args attached
-video_put_args.add_argument("name", type=str, help="Name of the video is required", required=True)
-video_put_args.add_argument("views", type=int, help="Views of the video is required", required=True)
-video_put_args.add_argument("likes", type=int, help="likes on the video is required", required=True)
+video_create_args.add_argument("name", type=str, help="Name of the video is required", required=True)
+video_create_args.add_argument("views", type=int, help="Views of the video is required", required=True)
+video_create_args.add_argument("likes", type=int, help="likes on the video is required", required=True)
 
 
+# request parser for updating
+# when updating none of the args needs to be required since we want the user to be able to update any single field
+video_update_args = reqparse.RequestParser()
+video_update_args.add_argument("name", type=str, help="Name of the video is required")
+video_update_args.add_argument("views", type=int, help="Views of the video is required")
+video_update_args.add_argument("likes", type=int, help="likes on the video is required")
 
 resource_fields = {
     "id": fields.Integer,
@@ -76,6 +82,26 @@ class Video(Resource):
             abort(404, message=f"Video with id {video_id} does not exist")
         db.session.commit()
         return {"message": 'delete successful', "status": 204}
+    
+    @marshal_with(resource_fields)
+    # patch can be used when we need to update only a PART of a resource
+    def patch(self, video_id):
+        args = video_update_args.parse_args()
+        # filtered_args = { key: value for key, value in args.items() if value is not None }
+        video = VideoModel.query.filter_by(id=video_id).first()
+        if not video:
+            abort(404, message=f"Video with id {video_id} does not exist")
+        # print(args['name'], 'argstype')
+        if args["name"]:
+            video.name = args["name"]
+        elif args["views"]:
+            video.views = args["views"]
+        elif video["likes"]:
+            video.likes = args["likes"]
+        
+        db.session.commit()
+        return video, 200
+
 
 # the api resource to use when creating a video - this needs to be separate from the above resource because i want the endpoint to not be associated with ids
 # to create a video it should be as simple as sending a video object o the /video endpoint
@@ -83,7 +109,7 @@ class CreateVideo(Resource):
     @marshal_with(resource_fields)
     def post(self):
         # this will parse the request for the args and if they arent in there it will automatically send back an error
-        args = video_put_args.parse_args()
+        args = video_create_args.parse_args()
         video = VideoModel(name=args['name'], views=args['views'], likes=args['likes'])
         # adds the object to the database session - this adds the video to the database TEMPORARILY
         db.session.add(video)
