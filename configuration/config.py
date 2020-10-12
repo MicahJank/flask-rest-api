@@ -12,14 +12,13 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
 
 class Production(Config):
-    DATABASE_URI = 'production uri here'
+    DATABASE_URI_PROD = os.environ.get("DATABASE_URI_PROD")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 class Development(Config):
     DEBUG = True
     TESTING = False
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
-    ENV = "development"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEVELOPMENT = True
 
 class Testing(Config):
@@ -28,7 +27,6 @@ class Testing(Config):
 # this function will return the environment flask should run it, ultimately that will be determined by an env variable
 # defaults to development if nothing is supplied
 def getConfig(environment="development"):
-    print(os.environ.get("DATABASE_URL"))
     if environment == 'production':
         return Production
     elif environment == 'testing':
